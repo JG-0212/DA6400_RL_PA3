@@ -1,29 +1,6 @@
 import numpy as np
 
 
-def epsilon_greedy(action_values, action_size, eps):
-    '''The function returns an action choice based on the
-    epsilon-greedy policy derived from the action values
-    '''
-    if np.random.uniform(0, 1) <= eps:
-        action = np.random.choice(np.arange(action_size))
-        return action
-    else:
-        return np.argmax(action_values)
-
-
-def softmax(action_values, action_size, tau):
-    '''The function returns an action choice based on the
-    softmax policy derived from the action values with 
-    temperature control
-    '''
-    softmax_Q = np.exp((action_values - np.max(action_values))/tau)
-    softmax_Q /= np.sum(softmax_Q)
-    softmax_action = np.random.choice(a=np.arange(action_size),
-                                      p=softmax_Q)
-    return softmax_action
-
-
 def moving_average(arr, n=100):
     """The function returns a rolling average of  scores over a window
     of size n
