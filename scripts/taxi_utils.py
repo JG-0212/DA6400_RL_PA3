@@ -1,10 +1,15 @@
 import heapq
 
+
 class TaxiUtils:
     """
     Constants and utility functions for the Taxi-v3 environment.
     To improve readability and simplify working with the environment.
     """
+
+    # Grid
+    GRID_ROWS = 5
+    GRID_COLS = 5
 
     # Action space
     SOUTH = 0
