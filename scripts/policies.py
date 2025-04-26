@@ -1,17 +1,6 @@
 import numpy as np
-import heapq
 
-
-def decode_env_state(state):
-    destination = state % 4
-    state = state//4
-    passenger_location = state % 5
-    state = state//5
-    taxi_col = state % 5
-    state = state//5
-    taxi_row = state
-
-    return taxi_row, taxi_col, passenger_location, destination
+from scripts.taxi_utils import TaxiUtils as tu
 
 
 class EpsilonGreedyPolicy:
@@ -64,83 +53,16 @@ class EpsilonGreedyPolicy:
         self.eps_decay = eps_decay
         self.eps = eps_start
 
-
 class MoveTaxiPolicy:
 
     def __init__(self, source):
 
-        self.adj_list = {}
-        directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
-        self.direction_map = {
-            directions[0]: 0,
-            directions[1]: 2,
-            directions[2]: 1,
-            directions[3]: 3
-        }
-
-        self.location_map = {
-            (0, 0): 0,
-            (4, 0): 2,
-            (0, 4): 1,
-            (4, 3): 3
-        }
-
-        self.PASSENGER_IN_TAXI = 4
-
-        self.DROP_PASSENGER = 5
-        self.PICK_PASSENGER = 4
-
-        for i in range(5):
-            for j in range(5):
-                self.adj_list[(i, j)] = []
-                for x, y in directions:
-                    if (0 <= i+x < 5) and (0 <= j+y < 5):
-                        self.adj_list[(i, j)].append((i+x, j+y))
-
-        obstacles = [
-            [(4, 0), (4, 1)],
-            [(3, 0), (3, 1)],
-            [(4, 2), (4, 3)],
-            [(3, 2), (3, 3)],
-            [(0, 1), (0, 2)],
-            [(1, 1), (1, 2)]
-        ]
-
-        for node1, node2 in obstacles:
-            self.adj_list[node1].remove(node2)
-            self.adj_list[node2].remove(node1)
-
-        dist = {}
-        prev = {}
-        visited = {}
-
-        dist[source] = 0
-        prev[source] = None
-
-        pq = []
-        heapq.heappush(pq, (dist[source], source))
-
-        while len(pq):
-            _, u = heapq.heappop(pq)
-            visited[u] = True
-
-            for neighbour in self.adj_list[u]:
-                if visited.get(neighbour, False):
-                    continue
-
-                alt = dist[u] + 1
-                d = dist.get(neighbour, -1)
-                if (d == -1) or (alt < d):
-                    dist[neighbour] = alt
-                    prev[neighbour] = u
-                    heapq.heappush(pq, (alt, neighbour))
-
-        self.dist = dist
-        self.prev = prev
+        self.adj_list = tu.build_taxi_graph()
+        self.dist, self.prev = tu.dijkstra(source, self.adj_list)
 
     def act(self, state):
         taxi_row, taxi_col, passenger_location, destination = (
-            decode_env_state(state)
+            tu.decode_env_state(state)
         )
 
         curr_loc = (taxi_row, taxi_col)
@@ -148,21 +70,44 @@ class MoveTaxiPolicy:
 
         if next_loc is not None:
             move = (next_loc[0]-curr_loc[0], next_loc[1]-curr_loc[1])
-            return self.direction_map[move]
+            return tu.DIR_TO_ACTION[move]
         else:
 
-            if passenger_location == self.PASSENGER_IN_TAXI:
+            if passenger_location == tu.IN_TAXI:
 
-                if self.location_map[curr_loc] == destination:
-                    return self.DROP_PASSENGER
+                if tu.LOC_TO_COLOR[curr_loc] == destination:
+                    return tu.DROPOFF
                 else:
-                    return self.PICK_PASSENGER
+                    return tu.PICKUP
             else:
 
-                if self.location_map[curr_loc] == passenger_location:
-                    return self.PICK_PASSENGER
+                if tu.LOC_TO_COLOR[curr_loc] == passenger_location:
+                    return tu.PICKUP
                 else:
-                    return self.PICK_PASSENGER
+                    return tu.PICKUP
+
+
+class OptimalPolicy:
+
+    def __init__(self):
+
+        self.sub_policies = {
+            tu.RED: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.RED]),
+            tu.GREEN: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.GREEN]),
+            tu.YELLOW: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.YELLOW]),
+            tu.BLUE: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.BLUE]),
+        }
+
+    def act(self, state):
+
+        taxi_row, taxi_col, passenger_location, destination = (
+            tu.decode_env_state(state)
+        )
+
+        if passenger_location != tu.IN_TAXI:
+            return self.sub_policies[passenger_location].act(state)
+        else:
+            return self.sub_policies[destination].act(state)
 
 
 if __name__ == '__main__':
