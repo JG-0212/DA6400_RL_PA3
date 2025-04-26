@@ -150,10 +150,19 @@ class MoveTaxiPolicy:
             move = (next_loc[0]-curr_loc[0], next_loc[1]-curr_loc[1])
             return self.direction_map[move]
         else:
-            if (passenger_location == self.PASSENGER_IN_TAXI) and (self.location_map[curr_loc] != passenger_location):
-                return self.DROP_PASSENGER
+
+            if passenger_location == self.PASSENGER_IN_TAXI:
+
+                if self.location_map[curr_loc] == destination:
+                    return self.DROP_PASSENGER
+                else:
+                    return self.PICK_PASSENGER
             else:
-                return self.PICK_PASSENGER
+
+                if self.location_map[curr_loc] == passenger_location:
+                    return self.PICK_PASSENGER
+                else:
+                    return self.PICK_PASSENGER
 
 
 if __name__ == '__main__':
