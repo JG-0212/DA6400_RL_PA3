@@ -53,6 +53,7 @@ class EpsilonGreedyPolicy:
         self.eps_decay = eps_decay
         self.eps = eps_start
 
+
 class MoveTaxiPolicy:
 
     def __init__(self, source):
@@ -85,6 +86,52 @@ class MoveTaxiPolicy:
                     return tu.PICKUP
                 else:
                     return tu.PICKUP
+
+
+class PickUpPassenger:
+
+    def __init__(self):
+
+        self.sub_policies = {
+            tu.RED: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.RED]),
+            tu.GREEN: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.GREEN]),
+            tu.YELLOW: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.YELLOW]),
+            tu.BLUE: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.BLUE]),
+        }
+
+    def act(self, state):
+
+        taxi_row, taxi_col, passenger_location, destination = (
+            tu.decode_env_state(state)
+        )
+
+        if passenger_location != tu.IN_TAXI:
+            return self.sub_policies[passenger_location].act(state)
+        else:
+            return tu.PICKUP
+
+
+class DropOffPassenger:
+
+    def __init__(self):
+
+        self.sub_policies = {
+            tu.RED: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.RED]),
+            tu.GREEN: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.GREEN]),
+            tu.YELLOW: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.YELLOW]),
+            tu.BLUE: MoveTaxiPolicy(tu.COLOR_TO_LOC[tu.BLUE]),
+        }
+
+    def act(self, state):
+
+        taxi_row, taxi_col, passenger_location, destination = (
+            tu.decode_env_state(state)
+        )
+
+        if passenger_location != tu.IN_TAXI:
+            return tu.DROPOFF
+        else:
+            return self.sub_policies[destination].act(state)
 
 
 class OptimalPolicy:
