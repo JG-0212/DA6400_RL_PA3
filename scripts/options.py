@@ -3,7 +3,7 @@ import numpy as np
 
 class Option:
 
-    def __init__(self, index, initiation_set, policy, termination, seed=None):
+    def __init__(self, index, initiation_set, policy, termination, label=None, seed=None):
         """
         Initialize an Option for SMDP Q-learning.
 
@@ -21,6 +21,7 @@ class Option:
         """
 
         self.index = index
+        self.label = label
 
         self.initiation_set = initiation_set
         self.policy = policy
