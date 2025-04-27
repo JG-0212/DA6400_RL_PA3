@@ -79,7 +79,7 @@ class MoveTaxiPolicy:
                 if tu.LOC_TO_COLOR[curr_loc] == destination:
                     return tu.DROPOFF
                 else:
-                    return tu.PICKUP
+                    return tu.DROPOFF
             else:
 
                 if tu.LOC_TO_COLOR[curr_loc] == passenger_location:

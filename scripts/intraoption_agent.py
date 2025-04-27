@@ -65,6 +65,7 @@ class IntraOptionQLearningAgent:
         max_next_Q_value = np.max(Q[next_state])
         estimate_Q = (1.0-beta)*Q[next_state, curr_idx] + beta*max_next_Q_value
 
+        # TODO Max over possible states only
         Q[state, curr_idx] = (
             curr_Q_value + self.LR *
             (reward + self.GAMMA*estimate_Q - curr_Q_value)
