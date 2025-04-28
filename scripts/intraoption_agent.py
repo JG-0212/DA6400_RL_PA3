@@ -59,17 +59,31 @@ class IntraOptionQLearningAgent:
     def step(self, state, action, reward, next_state, done):
 
         Q = self.Qtable
-        curr_idx = self.current_option.index
-        curr_Q_value = Q[state, curr_idx]
-        beta = self.current_option.termination[next_state]
-        max_next_Q_value = np.max(Q[next_state])
-        estimate_Q = (1.0-beta)*Q[next_state, curr_idx] + beta*max_next_Q_value
 
-        # TODO Max over possible states only
-        Q[state, curr_idx] = (
-            curr_Q_value + self.LR *
-            (reward + self.GAMMA*estimate_Q - curr_Q_value)
-        )
+        possible_options = []
+        for option in self.options:
+            if option.can_initiate(next_state):
+                possible_options.append(option.index)
+
+        next_Q_value = np.max(Q[next_state, possible_options])
+        beta = self.current_option.termination[next_state]
+
+        for option in self.options:
+            if option.can_initiate(state) == False:
+                continue
+            if option.policy.act(state) != action:
+                continue
+
+            curr_Q_value = Q[state, option.index]
+            estimate_Q = (
+                (1.0 - beta)*Q[next_state, option.index]
+                + beta*next_Q_value
+            )
+
+            Q[state, option.index] = (
+                curr_Q_value + self.LR *
+                (reward + self.GAMMA*estimate_Q - curr_Q_value)
+            )
 
         if self.current_option.is_terminated(next_state):
 
