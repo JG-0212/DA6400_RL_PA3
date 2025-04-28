@@ -36,6 +36,7 @@ class Trainer:
 
         for i_episode in progress_bar:
             state, _ = env.reset()
+            agent.set_option(state)
             score = 0
             total_reward = 0
             terminated, truncated = False, False

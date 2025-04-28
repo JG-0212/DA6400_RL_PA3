@@ -5,11 +5,11 @@ from scripts.taxi_utils import TaxiUtils as tu
 
 class EpsilonGreedyPolicy:
 
-    def __init__(self, actions, eps_start, eps_end, eps_decay,
+    def __init__(self, options, eps_start, eps_end, eps_decay,
                  decay_type="exponential", seed: int = None):
         """
         Args:
-            actions (int or list): Total number of actions or list of possible actions / options.
+            options (int or list): List of possible options.
             Qtable (ndarray): Reference to Q-table.
             eps_start (float): Starting epsilon value.
             eps_end (float): Minimum epsilon value.
@@ -17,10 +17,10 @@ class EpsilonGreedyPolicy:
             decay_type (str): 'exponential' or 'linear'.
             seed (int): Random seed for reproducibility.
         """
-        if isinstance(actions, int):
-            self.actions = list(range(actions))
+        if isinstance(options, int):
+            self.options = list(range(options))
         else:
-            self.actions = list(actions)
+            self.options = list(options)
 
         self.eps_start = eps_start
         self.eps_end = eps_end
@@ -32,12 +32,21 @@ class EpsilonGreedyPolicy:
 
     def act(self, state, Qtable):
         """Select an action using the epsilon-greedy strategy."""
-        action_values = Qtable[state]
+        option_values = Qtable[state]
         # TODO Check if option can be initiated before returning
+
+        possible_options = []
+        for option in self.options:
+            if option.can_initiate(state):
+                possible_options.append(option.index)
+
         if self.rng.uniform(0.0, 1.0) <= self.eps:
-            return self.rng.choice(self.actions)
+            option_choice = self.rng.choice(possible_options)
+            return self.options[option_choice]
         else:
-            return self.actions[np.argmax(action_values)]
+            idx = np.argmax(option_values[possible_options])
+            option_choice = possible_options[idx]
+            return self.options[option_choice]
 
     def update(self):
         """Update epsilon based on decay type."""

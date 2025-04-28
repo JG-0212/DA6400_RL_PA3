@@ -41,7 +41,7 @@ class IntraOptionQLearningAgent:
         self.option_policy = EpsilonGreedyPolicy(
             self.options, 1.0, 0.005, 0.999, seed=0
         )
-        self.current_option = self.option_policy.actions[0]
+        self.current_option = self.option_policy.options[0]
 
     def update_hyperparameters(self, **kwargs):
         """This function updates hyperparameters overriding the
@@ -79,3 +79,8 @@ class IntraOptionQLearningAgent:
 
     def act(self, state):
         return self.current_option.policy.act(state)
+
+    def set_option(self, state):
+        self.current_option = self.option_policy.act(
+            state, self.Qtable
+        )

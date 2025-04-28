@@ -47,7 +47,7 @@ class SMDPQLearningAgent:
         self.option_policy = EpsilonGreedyPolicy(
             self.options, 1.0, 0.005, 0.999, seed=0
         )
-        self.current_option = self.option_policy.actions[0]
+        self.current_option = self.option_policy.options[0]
 
     def update_hyperparameters(self, **kwargs):
         """This function updates hyperparameters overriding the
@@ -81,8 +81,13 @@ class SMDPQLearningAgent:
             Q = self.Qtable
             cur_idx = self.current_option.index
             curr_Q_value = Q[initial_state, cur_idx]
-            # TODO Max over steps where can_initiate
-            next_Q_value = np.max(Q[final_state, :])
+
+            possible_options = []
+            for option in self.options:
+                if option.can_initiate(final_state):
+                    possible_options.append(option.index)
+
+            next_Q_value = np.max(Q[final_state, possible_options])
 
             Q[initial_state, cur_idx] = (
                 curr_Q_value + self.LR *
@@ -97,3 +102,8 @@ class SMDPQLearningAgent:
 
     def act(self, state):
         return self.current_option.policy.act(state)
+
+    def set_option(self, state):
+        self.current_option = self.option_policy.act(
+            state, self.Qtable
+        )
