@@ -137,11 +137,7 @@ class DropOffPassenger:
             tu.decode_env_state(state)
         )
 
-        if passenger_location != tu.IN_TAXI:
-            return tu.DROPOFF
-        else:
-            return self.sub_policies[destination].act(state)
-
+        return self.sub_policies[destination].act(state)
 
 class OptimalPolicy:
 
