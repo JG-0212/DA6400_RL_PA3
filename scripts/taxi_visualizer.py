@@ -31,8 +31,8 @@ class TaxiVisualizer:
             extent=[0, tu.GRID_COLS, tu.GRID_ROWS, 0],
             interpolation="none",
             alpha=0.5,
-            vmin = np.min(heatmap),
-            vmax = np.max(heatmap)
+            vmin=np.min(heatmap),
+            vmax=np.max(heatmap)
         )
 
         plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
@@ -89,7 +89,6 @@ class TaxiVisualizer:
         ax.plot([tu.GRID_COLS, tu.GRID_COLS],
                 [0, tu.GRID_ROWS], color="black", linewidth=3)
 
-    
     @staticmethod
     def visualize_taxi_passenger_destination(state):
         """Visualizes the taxi, passenger, and destination for a given Taxi-v3 state.
@@ -138,7 +137,7 @@ class TaxiVisualizer:
             ax, "assets/destination.png",
             (destination[1] + 0.5, destination[0] + 0.5),
             zoom=0.30)
-        
+
     @staticmethod
     def visualize_passenger(state):
         """Visualizes the passenger for a given Taxi-v3 state.
@@ -174,7 +173,7 @@ class TaxiVisualizer:
                 ax, "assets/passenger.png",
                 (passenger_location[1] + 0.5, passenger_location[0] + 0.5),
                 zoom=0.30)
-            
+
     @staticmethod
     def visualize_destination(state):
         """Visualizes the destination for a given Taxi-v3 state.
@@ -223,7 +222,7 @@ class TaxiVisualizer:
                                             edgecolor="blue", arrowstyle="->"))
 
     @staticmethod
-    def visualize_options(option_heatmap, option_labels=None):
+    def visualize_options(option_heatmap, option_values, option_labels=None, color_offset=0):
         """Visualizes selected/assigned options over the Taxi-v3 grid.
 
         Args:
@@ -235,8 +234,11 @@ class TaxiVisualizer:
         tab10 = cm.get_cmap("tab10")
         ax = plt.gca()
         vis = {}
+        zeros = np.zeros_like(option_values[0, 0, :])
         for row in range(tu.GRID_ROWS):
             for col in range(tu.GRID_COLS):
+                if np.array_equal(option_values[row, col], zeros):
+                    continue
                 option = option_heatmap[row][col]
                 label = f"Option {option}" if option_labels is None else option_labels[option]
                 show_label = not vis.get(option, False)
@@ -244,7 +246,7 @@ class TaxiVisualizer:
                 circle = plt.Circle(
                     (col + 0.5, row + 0.5),
                     0.2,
-                    facecolor=tab10(option),
+                    facecolor=tab10(int((option+color_offset) % 10)),
                     edgecolor="none",
                     alpha=0.8,
                     label=label if show_label else None
@@ -253,7 +255,7 @@ class TaxiVisualizer:
                 vis[option] = True
 
     @staticmethod
-    def visualize_options_bubble_plot(option_values, option_labels=None, norm_axis=None):
+    def visualize_options_bubble_plot(option_values, option_labels=None, norm_axis=None, color_offset=0):
         """Visualize Q-values for different options as a bubble plot.
 
         Args:
@@ -289,13 +291,20 @@ class TaxiVisualizer:
 
         scale, centres = circular_arrange(k, 1)
         # values *= scale
+        min_val = np.min(values)
+        values -= min_val
+
+        min_vals = -np.ones_like(values[0, 0, :])*min_val
 
         vis = {}
         sf = 10
         for row in range(n):
             for col in range(m):
                 for v in range(k):
-                    r = values[row, col, v]
+                    r = values[row, col, v]/2.0
+                    if np.array_equal(values[row, col], min_vals):
+                        continue
+
                     cx, cy = centres[v, :]
 
                     label = f"Option {v}" if option_labels is None else option_labels[v]
@@ -304,7 +313,7 @@ class TaxiVisualizer:
                     circle = plt.Circle(
                         (cx + col + 0.5, cy + row + 0.5),
                         scale*np.log10((sf-1.0)*abs(r)+1.0)/np.log10(sf),
-                        facecolor=tab10(v),
+                        facecolor=tab10(int((v+color_offset) % 10)),
                         edgecolor="none" if r > 0 else "black",
                         linestyle="solid" if r > 0 else "dashed",
                         alpha=0.8,
@@ -312,6 +321,7 @@ class TaxiVisualizer:
                     )
                     ax.add_patch(circle)
                     vis[v] = True
+
 
 def add_img_util(ax, path, xy, zoom=0.1):
     """Adds an image to the plot at a given location.
@@ -321,27 +331,29 @@ def add_img_util(ax, path, xy, zoom=0.1):
     ab = AnnotationBbox(imagebox, xy, frameon=False)
     ax.add_artist(ab)
 
+
 def vis(state, Qtable, option_labels=None):
 
-    taxi_row, taxi_col, passenger_location, destination = tu.decode_env_state(state)
-    
+    taxi_row, taxi_col, passenger_location, destination = tu.decode_env_state(
+        state)
+
     fig, ax = plt.subplots(figsize=(5, 5))
 
     TaxiVisualizer.visualize_adjacency()
     TaxiVisualizer.visualize_locations()
 
-    option_values = Qtable[:,:,passenger_location, destination,:]
+    option_values = Qtable[:, :, passenger_location, destination, :]
     options = np.argmax(option_values, axis=-1)
 
     TaxiVisualizer.visualize_options(options, option_labels)
-    
+
     # tv.visualize_options_bubble_plot(option_values, option_labels, norm_axis=None)
-    
+
     # tv.visualize_heatmap(qvals)
     # tv.visualize_taxi_passenger_destination(state)
 
-
-    fig.legend(loc="lower center", bbox_to_anchor=(0.5, -0.08), ncol=4, fontsize=10)
+    fig.legend(loc="lower center", bbox_to_anchor=(
+        0.5, -0.08), ncol=4, fontsize=10)
 
     ax.set_xlim(0, 5)
     ax.set_ylim(0, 5)
@@ -351,4 +363,3 @@ def vis(state, Qtable, option_labels=None):
 
     plt.tight_layout()
     plt.show()
-    
