@@ -16,7 +16,7 @@ class IntraOptionQLearningAgent:
             seed (int): Random seed for reproducibility.
         """
 
-        self.GAMMA = 0.99        # discount factor
+        self.GAMMA = 0.90        # discount factor
 
         '''Hyperparameters'''
         self.LR = None           # learning rate

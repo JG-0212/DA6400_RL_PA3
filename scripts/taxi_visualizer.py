@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.image as mpimg
+import seaborn as sns
 from matplotlib import colormaps as cm
 
 from scripts.taxi_utils import TaxiUtils as tu
@@ -28,8 +29,10 @@ class TaxiVisualizer:
             heatmap,
             cmap="plasma",
             extent=[0, tu.GRID_COLS, tu.GRID_ROWS, 0],
-            interpolation="nearest",
+            interpolation="none",
             alpha=0.5,
+            vmin = np.min(heatmap),
+            vmax = np.max(heatmap)
         )
 
         plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
