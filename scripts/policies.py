@@ -139,6 +139,7 @@ class DropOffPassenger:
 
         return self.sub_policies[destination].act(state)
 
+
 class OptimalPolicy:
 
     def __init__(self):
@@ -160,6 +161,70 @@ class OptimalPolicy:
             return self.sub_policies[passenger_location].act(state)
         else:
             return self.sub_policies[destination].act(state)
+
+
+def get_termination_move_taxi(option_destination_location):
+    # ((taxi_row * 5 + taxi_col) * 5 + passenger_location) * 4 + destination
+    termination = [0 for i in range(500)]
+
+    base = (
+        100*option_destination_location[0] + 20*option_destination_location[1]
+    )
+    option_destination = tu.LOC_TO_COLOR[option_destination_location]
+
+    # "Possible" locations for termination
+    for destination in range(4):
+        for passenger_location in range(5):
+            termination[base + passenger_location*4 + destination] = 1
+
+    # Excluding a few states from termination set
+    # Enabling passenger Pickup
+    for destination in range(4):
+        termination[base + option_destination*4 + destination] = 0
+
+    # Enabling passenger Dropoff
+    termination[base + tu.IN_TAXI*4 + option_destination] = 0
+
+    return termination
+
+
+def get_initiation_move_taxi(option_destination_location):
+    initiation_set = [True for i in range(500)]
+
+    # Disable initiation in cases where taxi is already at the option's destination
+    taxi_row, taxi_col = option_destination_location
+    for passenger_location in range(5):
+        for destination in range(4):
+            initiation_set[taxi_row*100 + taxi_col*20 +
+                           passenger_location*4 + destination] = False
+
+    return initiation_set
+
+
+def get_termination_pick_passenger():
+    # ((taxi_row * 5 + taxi_col) * 5 + passenger_location) * 4 + destination
+    termination = [0 for i in range(500)]
+
+    for taxi_row in range(5):
+        for taxi_col in range(5):
+            for destination in range(4):
+                termination[taxi_row*100 + taxi_col *
+                            20 + tu.IN_TAXI*4 + destination] = 1
+
+    return termination
+
+
+def get_termination_drop_passenger():
+    # ((taxi_row * 5 + taxi_col) * 5 + passenger_location) * 4 + destination
+    termination = [0 for i in range(500)]
+
+    for destination in range(4):
+        for passenger_location in range(4):
+            taxi_row, taxi_col = tu.COLOR_TO_LOC[destination]
+            termination[taxi_row*100 + taxi_col*20 +
+                        passenger_location*4 + destination] = 1
+
+    return termination
 
 
 if __name__ == '__main__':

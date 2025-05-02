@@ -257,3 +257,35 @@ class TaxiVisualizer:
                     )
                     ax.add_patch(circle)
                     vis[v] = True
+
+def vis(state, Qtable, option_labels=None):
+
+    taxi_row, taxi_col, passenger_location, destination = tu.decode_env_state(state)
+    
+    fig, ax = plt.subplots(figsize=(5, 5))
+
+    TaxiVisualizer.visualize_adjacency()
+    TaxiVisualizer.visualize_locations()
+
+    option_values = Qtable[:,:,passenger_location, destination,:]
+    options = np.argmax(option_values, axis=-1)
+
+    TaxiVisualizer.visualize_options(options, option_labels)
+    
+    # tv.visualize_options_bubble_plot(option_values, option_labels, norm_axis=None)
+    
+    # tv.visualize_heatmap(qvals)
+    # tv.visualize_taxi_passenger_destination(state)
+
+
+    fig.legend(loc="lower center", bbox_to_anchor=(0.5, -0.08), ncol=4, fontsize=10)
+
+    ax.set_xlim(0, 5)
+    ax.set_ylim(0, 5)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    plt.gca().invert_yaxis()
+
+    plt.tight_layout()
+    plt.show()
+    
