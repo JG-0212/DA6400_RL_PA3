@@ -86,6 +86,7 @@ class TaxiVisualizer:
         ax.plot([tu.GRID_COLS, tu.GRID_COLS],
                 [0, tu.GRID_ROWS], color="black", linewidth=3)
 
+    
     @staticmethod
     def visualize_taxi_passenger_destination(state):
         """Visualizes the taxi, passenger, and destination for a given Taxi-v3 state.
@@ -93,14 +94,6 @@ class TaxiVisualizer:
         Args:
             state (int): Taxi-v3 encoded state, in [0, 500].
         """
-
-        def add_img_util(ax, path, xy, zoom=0.1):
-            """Adds an image to the plot at a given location.
-            """
-            img = mpimg.imread(path)
-            imagebox = OffsetImage(img, zoom=zoom)
-            ab = AnnotationBbox(imagebox, xy, frameon=False)
-            ax.add_artist(ab)
 
         taxi_row, taxi_col, passenger_location, destination = (
             tu.decode_env_state(state)
@@ -137,6 +130,65 @@ class TaxiVisualizer:
                 ax, "assets/passenger.png",
                 (passenger_location[1] + 0.5, passenger_location[0] + 0.5),
                 zoom=0.30)
+
+        add_img_util(
+            ax, "assets/destination.png",
+            (destination[1] + 0.5, destination[0] + 0.5),
+            zoom=0.30)
+        
+    @staticmethod
+    def visualize_passenger(state):
+        """Visualizes the passenger for a given Taxi-v3 state.
+
+        Args:
+            state (int): Taxi-v3 encoded state, in [0, 500].
+        """
+
+        taxi_row, taxi_col, passenger_location, destination = (
+            tu.decode_env_state(state)
+        )
+
+        taxi_location = (taxi_row, taxi_col)
+
+        destination = tu.COLOR_TO_LOC[destination]
+
+        ax = plt.gca()
+
+        if passenger_location == tu.IN_TAXI:
+            add_img_util(
+                ax, "assets/passenger_in_taxi.png",
+                (taxi_col + 0.5, taxi_row + 0.5),
+                zoom=0.35)
+        elif tu.COLOR_TO_LOC.get(passenger_location, None) == taxi_location:
+            passenger_location = tu.COLOR_TO_LOC[passenger_location]
+            add_img_util(
+                ax, "assets/passenger.png",
+                (passenger_location[1] + 0.75, passenger_location[0] + 0.5),
+                zoom=0.25)
+        else:
+            passenger_location = tu.COLOR_TO_LOC[passenger_location]
+            add_img_util(
+                ax, "assets/passenger.png",
+                (passenger_location[1] + 0.5, passenger_location[0] + 0.5),
+                zoom=0.30)
+            
+    @staticmethod
+    def visualize_destination(state):
+        """Visualizes the destination for a given Taxi-v3 state.
+
+        Args:
+            state (int): Taxi-v3 encoded state, in [0, 500].
+        """
+
+        taxi_row, taxi_col, passenger_location, destination = (
+            tu.decode_env_state(state)
+        )
+
+        taxi_location = (taxi_row, taxi_col)
+
+        destination = tu.COLOR_TO_LOC[destination]
+
+        ax = plt.gca()
 
         add_img_util(
             ax, "assets/destination.png",
@@ -257,6 +309,14 @@ class TaxiVisualizer:
                     )
                     ax.add_patch(circle)
                     vis[v] = True
+
+def add_img_util(ax, path, xy, zoom=0.1):
+    """Adds an image to the plot at a given location.
+    """
+    img = mpimg.imread(path)
+    imagebox = OffsetImage(img, zoom=zoom)
+    ab = AnnotationBbox(imagebox, xy, frameon=False)
+    ax.add_artist(ab)
 
 def vis(state, Qtable, option_labels=None):
 
