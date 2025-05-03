@@ -5,6 +5,24 @@ Jayagowtham J ME21B078
 
 Lalit Jayanti ME21B096
 
+## Contributions
+
+Jayagowtham J ME21B078
+
+  - Implementation of SMDP Q-Learning (equal contribution)
+  - Implementation of Intra-Option Q-Learning (equal contribution)
+  - Coming up with and implementing alternate options (equal contribution)
+  - Visualization and Plotting (equal contribution)
+  - Report writing (equal contribution)
+
+Lalit Jayanti ME21B096
+
+  - Implementation of SMDP Q-Learning (equal contribution)
+  - Implementation of Intra-Option Q-Learning (equal contribution)
+  - Coming up with and implementing alternate options (equal contribution)
+  - Visualization and Plotting (equal contribution)
+  - Report writing (equal contribution)
+
 ## File Structure 
 
 ```python
